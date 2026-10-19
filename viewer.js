@@ -3,6 +3,7 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 import { buildBlackHole, buildEffects } from './effects_first.js?v=50';
+import { createSectionReader, sections } from './sections.js?v=56';
 
 const host = document.getElementById('stage');
 const loadingEl = document.getElementById('loading');
@@ -66,6 +67,7 @@ renderer.domElement.addEventListener('pointerup', (e) => {
   if (focusState) return;
   const dx = e.clientX - swipeNext, dy = e.clientY - swipeNextY;
   if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy) * 1.2) {
+    pendingSection = null;
     yawTarget += (dx > 0 ? 1 : -1) * Math.PI / 3;   // 往右划 → 下一个
   }
 });
@@ -85,6 +87,7 @@ let modelRoot = null;
 let modelYaw = 0;
 let yawTarget = 0;
 let animTime = 0;
+let pendingSection = null;
 const raycaster = new THREE.Raycaster();
 const ndc = new THREE.Vector2();
 
@@ -223,8 +226,11 @@ loader.load(
     fx = buildEffects(root, hole.r, h, camera, isMobile);
     portals = fx.portals;
     tentMeshes = meshes;
+    const initialSection = sections.findIndex(section => '#' + section.id === location.hash);
+    if (initialSection >= 0) selectSection(initialSection);
     if (new URLSearchParams(location.search).get('testpanel') !== null && portals.length) {
-      setTimeout(() => openPanel(portals[0], { clientX: innerWidth / 2, clientY: innerHeight / 2 }), 800);
+      const index = Math.max(0, Math.min(5, Number(params.get('testpanel')) || 0));
+      setTimeout(() => selectSection(index), 800);
     }
 
 
@@ -331,17 +337,68 @@ function fitCamera() {
 let focusState = null;
 let focusTransition = null;
 const overviewPixelRatio = Math.min(window.devicePixelRatio || 1, isMobile ? 1.5 : 2);
-const focusLayer = document.createElement('div');
-focusLayer.className = 'portal-focus';
-focusLayer.innerHTML = '<button class="focus-back" type="button" aria-label="返回帐篷" title="返回帐篷"><span aria-hidden="true">&#8592;</span></button><div class="focus-copy"><h1></h1><p></p></div>';
-document.body.appendChild(focusLayer);
-focusLayer.querySelector('button').addEventListener('click', closePanel);
-const STORIES = [
-  { title: '纸牌的失重时刻', text: '当纸牌不再落地，故事便有了另一种可能。' },
-  { title: '在记忆的背面相遇', text: '那些散落的画面，在黑暗中重新相逢。' },
-  { title: '时间在这里绕了个圈', text: '如果时间也会迷路，下一刻，会通往哪里？' },
-];
+const reader = createSectionReader({ onSelect: selectSection, onClose: closePanel });
+const focusLayer = reader.element;
 let downX = 0, downY = 0, dragged = false;
+
+const readerPoint = new THREE.Vector3();
+function updateReaderPosition() {
+  if (!focusState) return;
+  const portal = focusState.portal;
+  portal.updateWorldMatrix(true, false);
+  camera.updateMatrixWorld(true);
+  const { width, height } = portal.geometry.parameters;
+  let left = Infinity, right = -Infinity, top = Infinity, bottom = -Infinity;
+  for (const x of [-width / 2, width / 2]) for (const y of [-height / 2, height / 2]) {
+    readerPoint.set(x, y, 0).applyMatrix4(portal.matrixWorld).project(camera);
+    const px = (readerPoint.x + 1) * host.clientWidth / 2;
+    const py = (1 - readerPoint.y) * host.clientHeight / 2;
+    left = Math.min(left, px); right = Math.max(right, px);
+    top = Math.min(top, py); bottom = Math.max(bottom, py);
+  }
+  // Keep the transparent reader within the opening, clear of the curtains.
+  const readerWidth = Math.min((right - left) * .70, 680);
+  const readerTop = Math.max(12, top + (bottom - top) * .13);
+  const readerBottom = Math.min(host.clientHeight - 12, bottom - (bottom - top) * .10);
+  const style = focusLayer.style;
+  style.setProperty('--reader-left', ((left + right - readerWidth) / 2).toFixed(2) + 'px');
+  style.setProperty('--reader-top', readerTop.toFixed(2) + 'px');
+  style.setProperty('--reader-width', readerWidth.toFixed(2) + 'px');
+  style.setProperty('--reader-height', Math.max(80, readerBottom - readerTop).toFixed(2) + 'px');
+}
+
+function setSectionHash(index) {
+  const url = new URL(location.href);
+  url.hash = sections[index].id;
+  history.replaceState(null, '', url);
+}
+
+function selectSection(index) {
+  if (!Number.isInteger(index) || !sections[index] || focusTransition) return;
+  if (!modelRoot || !portals.length) { pendingSection = index; return; }
+  if (focusState) {
+    if (reader.isImageOpen()) reader.closeImage();
+    // Rotate the next physical doorway into the same focused position.
+    modelYaw += (index - focusState.portal.userData.portal) * Math.PI / 3;
+    yawTarget = modelYaw;
+    modelRoot.rotation.y = modelYaw;
+    modelRoot.updateMatrixWorld(true);
+    focusState.portal = portals[index];
+    if (fx) fx.setFocus(portals[index]);
+    reader.show(index);
+    setSectionHash(index);
+    return;
+  }
+  const desired = index * Math.PI / 3;
+  yawTarget = desired + Math.round((modelYaw - desired) / (Math.PI * 2)) * Math.PI * 2;
+  pendingSection = index;
+}
+
+window.addEventListener('hashchange', () => {
+  const index = sections.findIndex(section => '#' + section.id === location.hash);
+  if (index >= 0) selectSection(index);
+  else if (!location.hash) closePanel();
+});
 
 renderer.domElement.addEventListener('pointerdown', (e) => { downX = e.clientX; downY = e.clientY; dragged = false; });
 renderer.domElement.addEventListener('pointermove', (e) => { if (Math.hypot(e.clientX - downX, e.clientY - downY) > 8) dragged = true; });
@@ -360,6 +417,7 @@ function pickPortal(e) {
 
 function openPanel(portal) {
   if (focusState) return;
+  pendingSection = null;
   focusState = {
     portal,
     position: camera.position.clone(),
@@ -369,11 +427,10 @@ function openPanel(portal) {
   };
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
   if (fx) fx.setFocus(portal);
-  const story = STORIES[(portal.userData.portal || 0) % STORIES.length];
-  focusLayer.querySelector('h1').textContent = story.title;
-  focusLayer.querySelector('p').textContent = story.text;
+  reader.show(portal.userData.portal);
+  setSectionHash(portal.userData.portal);
   focusLayer.classList.add('active');
-  focusLayer.querySelector('button').focus({ preventScroll: true });
+  reader.focusBack();
   document.body.classList.add('portal-focused');
   controls.autoRotate = false;
   clearTimeout(resumeTimer);
@@ -427,6 +484,7 @@ function startFocusTransition(entering) {
 }
 
 function closePanel() {
+  if (reader.isImageOpen()) { reader.closeImage(); return; }
   if (!focusState || focusTransition?.entering === false) return;
   focusLayer.classList.remove('ready');
   startFocusTransition(false);
@@ -447,17 +505,24 @@ function updateFocus() {
   }
   controls.minDistance = focusState.minDistance;
   controls.maxDistance = focusState.maxDistance;
+  const lastSection = focusState.portal.userData.portal;
   focusState = null;
   if (fx) fx.setFocus(null);
   renderer.setPixelRatio(overviewPixelRatio);
   focusLayer.classList.remove('active');
   document.body.classList.remove('portal-focused');
+  document.querySelector('.chapter-menu [data-section-index="' + lastSection + '"]')?.focus({ preventScroll: true });
+  focusLayer.classList.remove('expanded');
+  const url = new URL(location.href);
+  url.hash = '';
+  history.replaceState(null, '', url);
   controls.autoRotate = false;
   clearTimeout(resumeTimer);
   updateOpeningPosition();
 }
 
 window.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && reader.isImageOpen()) { e.preventDefault(); reader.closeImage(); return; }
   if (e.key === 'Escape' && focusState) closePanel();
 });
 
@@ -487,11 +552,19 @@ renderer.setAnimationLoop(() => {
     else s.holder.rotation.z = v;
   }
   if (modelRoot) {
-    modelYaw += (yawTarget - modelYaw) * 0.14;
+    modelYaw += (yawTarget - modelYaw) * (1 - Math.exp(-9 * dt));
     modelRoot.rotation.y = modelYaw;
+    if (pendingSection !== null && portals.length && !focusState && Math.abs(yawTarget - modelYaw) < 0.002) {
+      const index = pendingSection;
+      pendingSection = null;
+      modelYaw = yawTarget;
+      modelRoot.rotation.y = modelYaw;
+      openPanel(portals[index]);
+    }
   }
   updateFocus();
   controls.update();
+  updateReaderPosition();
   if (fx) fx.render(renderer, camera);
   renderer.render(scene, camera);
 });

@@ -4,9 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>午夜马戏 · 帐篷 3D</title>
-<link rel="stylesheet" href="./focus.css?v=48">
-<link rel="stylesheet" href="./opening-fonts.css?v=53">
-<link rel="stylesheet" href="./opening.css?v=53">
+<link rel="stylesheet" href="./focus.css?v=56">
+<link rel="stylesheet" href="./opening-fonts.css?v=54">
+<link rel="stylesheet" href="./opening.css?v=54">
 <style>
   :root{ color-scheme: dark; }
   html,body{ width:100%; height:100%; height:100dvh; margin:0; background:#0b0910; overflow:hidden;
@@ -94,6 +94,14 @@
   <div id="stage"></div>
   <div class="vignette"></div>
   <main class="opening" aria-label="开场独白">
+    <nav class="chapter-menu section-links" aria-label="六个板块">
+      <a href="#chief" data-section-index="0">首席</a>
+      <a href="#program" data-section-index="1">今日剧目</a>
+      <a href="#rules" data-section-index="2">戒律</a>
+      <a href="#whispers" data-section-index="3">呓语</a>
+      <a href="#reviews" data-section-index="4">尖叫分贝</a>
+      <a href="#cards" data-section-index="5">彩头</a>
+    </nav>
     <div class="opening-inner">
       <p class="opening-greeting">哎呀，这位观众，<br class="opening-mobile-break">你的表情怎么如此僵硬？</p>
       <p class="opening-question">是生活这场戏太无聊，<br class="opening-mobile-break">还是你还没学会怎么取悦我？</p>
@@ -114,6 +122,7 @@
   <div class="err" id="err">模型加载失败。<br>请确认通过本地服务器打开本页，而不是双击 index.html。</div>
   <div class="tip" id="tip">拖动旋转 · 松手继续自转 · 点洞口</div>
   <div class="panel-layer" id="panelLayer"><svg id="lines"></svg><div id="cards"></div></div>
-  <script type="module" src="./viewer.js?v=53"></script>
+  <script src="./vendor/lucide.min.js?v=54"></script>
+  <script type="module" src="./viewer.js?v=56"></script>
 </body>
 </html>
