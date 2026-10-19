@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>午夜马戏 · 帐篷 3D</title>
 <link rel="stylesheet" href="./focus.css?v=48">
+<link rel="stylesheet" href="./opening-fonts.css?v=53">
+<link rel="stylesheet" href="./opening.css?v=53">
 <style>
   :root{ color-scheme: dark; }
   html,body{ width:100%; height:100%; height:100dvh; margin:0; background:#0b0910; overflow:hidden;
@@ -91,6 +93,18 @@
   <div class="ambient-art" aria-hidden="true"></div>
   <div id="stage"></div>
   <div class="vignette"></div>
+  <main class="opening" aria-label="开场独白">
+    <div class="opening-inner">
+      <p class="opening-greeting">哎呀，这位观众，<br class="opening-mobile-break">你的表情怎么如此僵硬？</p>
+      <p class="opening-question">是生活这场戏太无聊，<br class="opening-mobile-break">还是你还没学会怎么取悦我？</p>
+      <div class="opening-invitation">
+        <p>围观群众已就位，还请这位贵客检票入场。<br>请将理智寄存在门口。</p>
+        <p>下单吧，客人。<br class="opening-mobile-break">欢愉是基酒，爱意是装饰，<br>至于结局……敬请期待。</p>
+      </div>
+      <p class="opening-curtain">闹剧主角登场，演出开始！</p>
+      <p class="opening-aside">“乖孩子，听话的人才有糖吃……<br class="opening-mobile-break">虽然我的糖里可能有点砒霜。”</p>
+    </div>
+  </main>
   <div class="topbar"><span class="name">午夜马戏 · 帐篷</span><span class="hint">自动旋转</span></div>
   <div class="loading" id="loading">
     <span>正在装载帐篷模型</span>
@@ -100,6 +114,6 @@
   <div class="err" id="err">模型加载失败。<br>请确认通过本地服务器打开本页，而不是双击 index.html。</div>
   <div class="tip" id="tip">拖动旋转 · 松手继续自转 · 点洞口</div>
   <div class="panel-layer" id="panelLayer"><svg id="lines"></svg><div id="cards"></div></div>
-  <script type="module" src="./viewer.js?v=50"></script>
+  <script type="module" src="./viewer.js?v=53"></script>
 </body>
 </html>

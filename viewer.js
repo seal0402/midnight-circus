@@ -217,6 +217,7 @@ loader.load(
     controls.maxDistance = dist * 3.3;
     controls.update();
     if (host.clientWidth <= 700) fitCamera();
+    updateOpeningPosition();
     const radius = Math.max(bb.getSize(new THREE.Vector3()).x, bb.getSize(new THREE.Vector3()).z) / 2;
     const hole = buildBlackHole(root, radius, h);
     fx = buildEffects(root, hole.r, h, camera, isMobile);
@@ -249,6 +250,19 @@ loader.load(
 
 let fitSphere = null;
 let fitPoints = [];
+
+// Keep the opening below the projected model without changing its framing.
+function updateOpeningPosition() {
+  if (focusState || !fitPoints.length) return;
+  camera.updateMatrixWorld(true);
+  const point = new THREE.Vector3();
+  let bottom = 0;
+  for (const vertex of fitPoints) {
+    point.copy(vertex).project(camera);
+    bottom = Math.max(bottom, (1 - point.y) * host.clientHeight / 2);
+  }
+  document.querySelector('.opening')?.style.setProperty('--overview-bottom', Math.ceil(bottom) + 'px');
+}
 
 function mobileOverviewFrame() {
   const view = new THREE.PerspectiveCamera(camera.fov, camera.aspect, camera.near, camera.far);
@@ -440,6 +454,7 @@ function updateFocus() {
   document.body.classList.remove('portal-focused');
   controls.autoRotate = false;
   clearTimeout(resumeTimer);
+  updateOpeningPosition();
 }
 
 window.addEventListener('keydown', (e) => {
@@ -453,6 +468,7 @@ function resize() {
   camera.aspect = width / height;
   camera.updateProjectionMatrix();
   fitCamera();
+  updateOpeningPosition();
 }
 window.addEventListener('resize', resize);
 window.visualViewport?.addEventListener('resize', resize);

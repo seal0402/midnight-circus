@@ -1,0 +1,8 @@
+@font-face {
+  font-family: "Circus Xiaowei";
+  src: url('./opening-xiaowei.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+:root { --opening-font: "Circus Xiaowei", "Noto Serif SC", "SimSun", serif; }

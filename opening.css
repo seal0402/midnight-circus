@@ -1,0 +1,68 @@
+html:has(.opening) {
+  height: auto;
+  min-height: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #735b52 #0b0910;
+}
+body:has(.opening) {
+  height: auto;
+  min-height: 100dvh;
+  overflow: visible;
+}
+body:has(.opening) #stage {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 100dvh;
+}
+.opening {
+  position: relative;
+  z-index: 3;
+  box-sizing: border-box;
+  padding: calc(var(--overview-bottom, 91dvh) + 28px) 24px max(48px, env(safe-area-inset-bottom));
+  color: #e3d2c3;
+  text-align: center;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 650ms ease;
+}
+body:has(.loading.done) .opening { opacity: 1; }
+.opening-inner {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 16px 12px 0;
+  background: radial-gradient(ellipse at center, #0b0910e0, #0b091000 72%);
+  text-shadow: 0 2px 8px #000, 0 0 18px #000;
+  font-family: var(--opening-font);
+  letter-spacing: 0;
+  overflow-wrap: anywhere;
+  pointer-events: auto;
+  touch-action: pan-y;
+}
+.opening p { margin: 0; }
+.opening-greeting { color: #f6e8d6; font-size: 24px; line-height: 1.9; }
+.opening-question { margin-top: 10px !important; color: #c9b8ad; font-size: 16px; line-height: 2; }
+.opening-invitation { margin-top: 26px; font-size: 15px; line-height: 2.1; }
+.opening-invitation p + p { margin-top: 15px; }
+.opening-curtain { margin-top: 27px !important; color: #edc38f; font-size: 22px; line-height: 1.8; }
+.opening-aside { margin-top: 19px !important; color: #b8a7a3; font-size: 13px; line-height: 2; }
+.opening-mobile-break { display: none; }
+body:has(.opening) .tip { display: none; }
+body.portal-focused .opening { opacity: 0; visibility: hidden; }
+html:has(body.portal-focused) { overflow: hidden; }
+body.portal-focused #stage { position: fixed; }
+@media (max-width: 700px) {
+  .opening { padding: calc(var(--overview-bottom, 50dvh) + 18px) 22px max(30px, env(safe-area-inset-bottom)); }
+  .opening-inner { padding: 8px 0 0; }
+  .opening-mobile-break { display: initial; }
+  .opening-greeting { font-size: 21px; line-height: 1.85; }
+  .opening-question { margin-top: 8px !important; font-size: 14px; line-height: 2; }
+  .opening-invitation { margin-top: 22px; font-size: 13px; line-height: 2; }
+  .opening-invitation p + p { margin-top: 12px; }
+  .opening-curtain { margin-top: 22px !important; font-size: 19px; }
+  .opening-aside { margin-top: 16px !important; font-size: 12px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .opening { transition: none; }
+}
