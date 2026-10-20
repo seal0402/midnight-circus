@@ -112,8 +112,9 @@ body.portal-focused .focus-swipe-hint { display: block; }
   .gallery-image img { height: 130px; }
   .single-image img { height: 190px; }
   .gallery-pages { margin-top: 2px; gap: 8px; }
-  .image-toolbar { gap: 6px; }
-  .image-toolbar button, .image-download { width: 40px; height: 40px; }
+  .image-toolbar { gap: 4px; padding-left: 8px; padding-right: 8px; }
+  .image-toolbar button, .image-download { width: 36px; height: 40px; }
+  .image-toolbar .image-count { min-width: 32px; }
   .image-stage { padding-left: 12px; padding-right: 12px; }
 }
 @media (max-height: 500px) and (min-width: 701px) {

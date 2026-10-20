@@ -1,10 +1,10 @@
-import sections from './sections-data.js?v=59';
+import sections from './sections-data.js?v=60';
 
 export { sections };
 
 export function sectionHref(index) {
   const section = sections[index];
-  return section.page ? './' + section.page + '?v=59' : './#' + section.id;
+  return section.page ? './' + section.page + '?v=60' : './#' + section.id;
 }
 
 function node(tag, className, text) {
@@ -62,6 +62,8 @@ export function createSectionReader({ onSelect, onClose, standalone = false, mou
   const dialog = node('dialog', 'image-viewer');
   dialog.setAttribute('aria-label', '图片查看');
   const toolbar = node('div', 'image-toolbar');
+  const exit = iconButton('arrow-left', '返回帐篷', 'image-exit');
+  exit.addEventListener('click', () => { dialog.close(); onClose(); });
   const previous = iconButton('chevron-left', '上一张');
   const next = iconButton('chevron-right', '下一张');
   const count = node('span', 'image-count');
@@ -73,7 +75,7 @@ export function createSectionReader({ onSelect, onClose, standalone = false, mou
   download.setAttribute('download', '');
   download.innerHTML = '<i data-lucide="download"></i>';
   const dismiss = iconButton('x', '关闭图片');
-  toolbar.append(previous, count, next, zoom, download, dismiss);
+  toolbar.append(exit, previous, count, next, zoom, download, dismiss);
   const imageStage = node('div', 'image-stage');
   const fullImage = node('img');
   imageStage.append(fullImage);
@@ -108,6 +110,11 @@ export function createSectionReader({ onSelect, onClose, standalone = false, mou
   previous.addEventListener('click', () => showImage(imageIndex - 1));
   next.addEventListener('click', () => showImage(imageIndex + 1));
   dismiss.addEventListener('click', () => dialog.close());
+  dialog.addEventListener('cancel', event => {
+    event.preventDefault();
+    event.stopPropagation();
+    dialog.close();
+  });
   dialog.addEventListener('close', () => imageTrigger?.focus({ preventScroll: true }));
   dialog.addEventListener('keydown', event => {
     if (event.key === 'ArrowLeft') { event.preventDefault(); showImage(imageIndex - 1); }

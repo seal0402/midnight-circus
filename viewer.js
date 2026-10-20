@@ -3,7 +3,7 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 import { buildBlackHole, buildEffects } from './effects_first.js?v=50';
-import { createSectionReader, sections } from './sections.js?v=59';
+import { createSectionReader, sections } from './sections.js?v=60';
 
 const host = document.getElementById('stage');
 const loadingEl = document.getElementById('loading');
@@ -350,6 +350,7 @@ let photoIndex = null;
 let photoReturnUrl = null;
 let photoReturnFocus = null;
 let photoNextSection = null;
+let photoClosing = false;
 photoLayer.addEventListener('cancel', event => { event.preventDefault(); closePhotoPage(); });
 
 function openPhotoPage(index, fromHistory = false) {
@@ -372,6 +373,7 @@ function openPhotoPage(index, fromHistory = false) {
   }
   pendingSection = null;
   photoIndex = index;
+  photoClosing = false;
   photoReader.show(index);
   document.body.classList.add('photo-page-open');
   if (!photoLayer.open) photoLayer.showModal();
@@ -388,8 +390,9 @@ function dismissPhotoPage() {
 }
 
 function closePhotoPage(nextIndex = null) {
-  if (photoReader.isImageOpen()) { photoReader.closeImage(); return; }
-  if (!photoLayer.open) return;
+  if (photoReader.isImageOpen()) photoReader.closeImage();
+  if (!photoLayer.open || photoClosing) return;
+  photoClosing = true;
   photoNextSection = nextIndex;
   if (history.state?.photoPage) history.back();
   else {
@@ -600,12 +603,36 @@ function updateFocus() {
 
 window.addEventListener('keydown', (e) => {
   if (photoLayer.open) {
-    if (e.key === 'Escape') { e.preventDefault(); closePhotoPage(); }
+    if (e.key === 'Escape' && !photoReader.isImageOpen()) { e.preventDefault(); closePhotoPage(); }
     return;
   }
   if (e.key === 'Escape' && reader.isImageOpen()) { e.preventDefault(); reader.closeImage(); return; }
   if (e.key === 'Escape' && focusState) closePanel();
 });
+
+const music = document.getElementById('background-music');
+const musicToggle = document.getElementById('music-toggle');
+let musicEnabled = true;
+function syncMusicControl() {
+  musicToggle.setAttribute('aria-pressed', String(musicEnabled));
+  musicToggle.setAttribute('aria-label', musicEnabled ? '关闭背景音乐' : '开启背景音乐');
+  musicToggle.title = musicEnabled ? '关闭背景音乐' : '开启背景音乐';
+  musicToggle.innerHTML = '<i data-lucide="' + (musicEnabled ? 'volume-2' : 'volume-x') + '"></i>';
+  window.lucide.createIcons({ attrs: { width: 19, height: 19, 'stroke-width': 1.6, 'aria-hidden': 'true' } });
+}
+function startMusic() {
+  if (musicEnabled && music.paused) music.play().catch(() => {});
+}
+musicToggle.addEventListener('click', () => {
+  musicEnabled = !musicEnabled;
+  if (musicEnabled) startMusic();
+  else music.pause();
+  syncMusicControl();
+});
+document.addEventListener('pointerdown', startMusic, { once: true });
+document.addEventListener('keydown', startMusic, { once: true });
+syncMusicControl();
+startMusic();
 
 let exitGesture = null;
 document.addEventListener('pointerdown', event => {
