@@ -6,9 +6,10 @@
 
 - GitHub Pages：https://seal0402.github.io/midnight-circus/
 - 阿里云固定入口：https://seal42.top/Sky/
-- 苍竹的固定人名入口：https://seal42.top/Sky/cangzhu/
+- 固定个人入口：https://seal42.top/Sky/Farce/
+- 旧人名入口继续可用：https://seal42.top/Sky/cangzhu/
 
-两个入口共用网站文件和模型，不按发布版本更换网址。人名后缀配置在 `person-path.json` 的 `slug`（小写拼音），运行 `build-person-entry.ps1` 会生成对应目录入口；打包和 GitHub 发布脚本也会自动生成。入口使用相对 base 引用共享资源，页面内图片浮层和返回保留当前人名路径。改变后缀时保留已发布的旧入口，避免已有链接失效。
+所有入口共用网站文件和模型，不按发布版本更换网址。个人后缀配置在 `person-path.json` 的 `slug`（区分大小写，当前为 Farce），运行 `build-person-entry.ps1` 会生成对应目录入口；打包和 GitHub 发布脚本也会自动生成。入口使用相对 base 引用共享资源，页面内图片浮层和返回保留当前个人路径。改变后缀时保留已发布的旧入口，避免已有链接失效。
 
 背景音乐来自用户提供的 MP4 视频音轨，默认开启，在首次触摸/点击后按浏览器自动播放策略开始播放。右上角扬声器按钮可关闭/重新打开；控制仅影响当前会话。音乐源位于 `media/audio/background.mp3`。
 

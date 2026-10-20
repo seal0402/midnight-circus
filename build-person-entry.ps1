@@ -1,8 +1,8 @@
 $ErrorActionPreference = 'Stop'
 $config = Get-Content -LiteralPath (Join-Path $PSScriptRoot 'person-path.json') -Raw -Encoding UTF8 | ConvertFrom-Json
 $personSlug = [string]$config.slug
-if ($personSlug -cnotmatch '^[a-z][a-z0-9-]{0,39}$' -or $personSlug -in @('media', 'vendor', 'output')) {
-    throw 'Use a lowercase name containing letters, digits or hyphens (maximum 40 characters).'
+if ($personSlug -cnotmatch '^[A-Za-z][A-Za-z0-9-]{0,39}$' -or $personSlug -in @('media', 'vendor', 'output')) {
+    throw 'Use a name containing letters, digits or hyphens (maximum 40 characters).'
 }
 $html = [IO.File]::ReadAllText((Join-Path $PSScriptRoot 'index.html'))
 if ($html.Contains('<base ')) { throw 'Main entry already defines a base URL' }
