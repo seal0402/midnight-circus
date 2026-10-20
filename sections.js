@@ -1,6 +1,11 @@
-import sections from './sections-data.js?v=54';
+import sections from './sections-data.js?v=57';
 
 export { sections };
+
+export function sectionHref(index) {
+  const section = sections[index];
+  return section.page ? './' + section.page + '?v=57' : './?v=57#' + section.id;
+}
 
 function node(tag, className, text) {
   const element = document.createElement(tag);
@@ -22,7 +27,7 @@ function iconButton(icon, label, className = '') {
   return button;
 }
 
-export function createSectionReader({ onSelect, onClose }) {
+export function createSectionReader({ onSelect, onClose, standalone = false }) {
   const element = node('section', 'portal-focus');
   element.setAttribute('aria-label', '帐篷内容');
   const back = iconButton('arrow-left', '返回帐篷', 'focus-back');
@@ -32,7 +37,9 @@ export function createSectionReader({ onSelect, onClose }) {
   const titles = node('div', 'chapter-titles');
   const title = node('h1');
   title.id = 'chapter-title';
-  titles.append(title);
+  const name = node('p', 'chief-name');
+  const description = node('p', 'section-description');
+  titles.append(title, name, description);
   const scroll = node('div', 'chapter-body');
   scroll.id = 'chapter-body';
   scroll.tabIndex = 0;
@@ -43,7 +50,7 @@ export function createSectionReader({ onSelect, onClose }) {
   navigation.setAttribute('aria-label', '六个板块');
   sections.forEach((section, index) => {
     const link = node('a', '', section.title);
-    link.href = '#' + section.id;
+    link.href = sectionHref(index);
     link.dataset.sectionIndex = String(index);
     navigation.append(link);
   });
@@ -117,9 +124,11 @@ export function createSectionReader({ onSelect, onClose }) {
 
   document.addEventListener('click', event => {
     const link = event.target.closest('a[data-section-index]');
-    if (!link || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+    if (!link || event.defaultPrevented || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+    const index = Number(link.dataset.sectionIndex);
+    if (standalone || sections[index]?.page) return;
     event.preventDefault();
-    onSelect(Number(link.dataset.sectionIndex));
+    onSelect(index);
   });
 
   function paragraphs(parent, values = []) {
@@ -129,6 +138,10 @@ export function createSectionReader({ onSelect, onClose }) {
   function show(index) {
     const section = sections[index];
     title.textContent = section.title;
+    name.textContent = section.name || '';
+    name.hidden = !section.name;
+    description.textContent = standalone ? section.description || '' : '';
+    description.hidden = !description.textContent;
     body.replaceChildren();
     scroll.scrollTop = 0;
     body.classList.toggle('image-content', Boolean(section.images));
@@ -195,7 +208,7 @@ export function createSectionReader({ onSelect, onClose }) {
         buttons.push(button);
       });
       body.append(gallery);
-      if (images.length > 3) {
+      if (images.length > 3 && !standalone) {
         const pages = Math.ceil(images.length / 3);
         let page = 0;
         const pager = node('nav', 'gallery-pages');

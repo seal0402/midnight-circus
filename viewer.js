@@ -3,7 +3,7 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 import { buildBlackHole, buildEffects } from './effects_first.js?v=50';
-import { createSectionReader, sections } from './sections.js?v=56';
+import { createSectionReader, sections, sectionHref } from './sections.js?v=57';
 
 const host = document.getElementById('stage');
 const loadingEl = document.getElementById('loading');
@@ -375,6 +375,7 @@ function setSectionHash(index) {
 
 function selectSection(index) {
   if (!Number.isInteger(index) || !sections[index] || focusTransition) return;
+  if (sections[index].page) { location.assign(sectionHref(index)); return; }
   if (!modelRoot || !portals.length) { pendingSection = index; return; }
   if (focusState) {
     if (reader.isImageOpen()) reader.closeImage();
@@ -417,6 +418,10 @@ function pickPortal(e) {
 
 function openPanel(portal) {
   if (focusState) return;
+  if (sections[portal.userData.portal].page) {
+    location.assign(sectionHref(portal.userData.portal));
+    return;
+  }
   pendingSection = null;
   focusState = {
     portal,
@@ -525,6 +530,36 @@ window.addEventListener('keydown', (e) => {
   if (e.key === 'Escape' && reader.isImageOpen()) { e.preventDefault(); reader.closeImage(); return; }
   if (e.key === 'Escape' && focusState) closePanel();
 });
+
+let exitGesture = null;
+document.addEventListener('pointerdown', event => {
+  exitGesture = null;
+  if (!focusState || !focusLayer.classList.contains('ready') || reader.isImageOpen() ||
+      !event.isPrimary || event.button !== 0 || event.target.closest('a, button, summary, dialog')) return;
+  exitGesture = { id: event.pointerId, x: event.clientX, y: event.clientY, vertical: false };
+}, true);
+document.addEventListener('pointermove', event => {
+  if (!exitGesture || exitGesture.id !== event.pointerId) return;
+  const dx = Math.abs(event.clientX - exitGesture.x);
+  const dy = Math.abs(event.clientY - exitGesture.y);
+  if (dy > 16 && dy > dx) exitGesture.vertical = true;
+}, true);
+document.addEventListener('pointercancel', () => { exitGesture = null; }, true);
+document.addEventListener('pointerup', event => {
+  const gesture = exitGesture;
+  exitGesture = null;
+  if (!gesture || gesture.id !== event.pointerId || !focusState || reader.isImageOpen()) return;
+  const dx = Math.abs(event.clientX - gesture.x);
+  const dy = Math.abs(event.clientY - gesture.y);
+  if (!gesture.vertical && dx >= 60 && dx > dy * 1.5) { closePanel(); return; }
+  if (Math.hypot(dx, dy) > 8 || event.target.closest('.focus-copy, .focus-back')) return;
+  const bounds = renderer.domElement.getBoundingClientRect();
+  ndc.set((event.clientX - bounds.left) / bounds.width * 2 - 1,
+    -(event.clientY - bounds.top) / bounds.height * 2 + 1);
+  raycaster.setFromCamera(ndc, camera);
+  const hit = raycaster.intersectObjects([focusState.portal, ...tentMeshes], false)[0];
+  if (hit?.object !== focusState.portal) closePanel();
+}, true);
 
 function resize() {
   const width = host.clientWidth || window.innerWidth;

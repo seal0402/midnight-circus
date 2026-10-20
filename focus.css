@@ -17,9 +17,11 @@
   background: none; border: 0; box-shadow: none;
   opacity: 0; transition: opacity 600ms ease; pointer-events: none;
 }
-.portal-focus.ready .focus-copy { opacity: 1; pointer-events: auto; }
+.portal-focus.ready .focus-copy { opacity: 1; pointer-events: auto; touch-action: pan-y; }
 .chapter-heading { flex: none; text-align: center; padding-bottom: 8px; }
 .focus-copy h1 { margin: 10px 0 0; font-size: 30px; font-weight: 400; line-height: 1.5; overflow-wrap: anywhere; color: rgb(244 231 212 / 90%); }
+.chief-name { margin: 4px 0 0; font-size: 38px; line-height: 1.5; color: #edc38fed; }
+.chief-name[hidden], .section-description[hidden] { display: none; }
 .chapter-body {
   flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain;
   scrollbar-width: none; font-size: 18px; line-height: 2.1; overflow-wrap: anywhere; touch-action: pan-y;
@@ -90,6 +92,7 @@
 body.portal-focused .topbar, body.portal-focused .tip { opacity: 0; }
 @media (max-width: 700px) {
   .focus-copy h1 { font-size: 23px; margin-top: 5px; }
+  .chief-name { font-size: 29px; margin-top: 0; }
   .focus-copy .section-links { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0 6px; }
   .focus-copy .section-links a { font-size: 12px; padding: 3px 0; }
   .chapter-heading { padding-bottom: 0; }
@@ -115,6 +118,7 @@ body.portal-focused .topbar, body.portal-focused .tip { opacity: 0; }
   .focus-copy .section-links { gap: 12px; }
   .focus-copy .section-links a { font-size: 12px; }
   .focus-copy h1 { font-size: 23px; margin-top: 0; }
+  .chief-name { font-size: 29px; }
   .chapter-heading { padding-bottom: 0; }
   .chapter-body { font-size: 15px; line-height: 1.9; }
   .chapter-content { padding-top: 30px; padding-bottom: 36px; }
