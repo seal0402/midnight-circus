@@ -1,10 +1,10 @@
-import sections from './sections-data.js?v=58';
+import sections from './sections-data.js?v=59';
 
 export { sections };
 
 export function sectionHref(index) {
   const section = sections[index];
-  return section.page ? './' + section.page + '?v=58' : './?v=58#' + section.id;
+  return section.page ? './' + section.page + '?v=59' : './#' + section.id;
 }
 
 function node(tag, className, text) {
@@ -27,7 +27,7 @@ function iconButton(icon, label, className = '') {
   return button;
 }
 
-export function createSectionReader({ onSelect, onClose, standalone = false }) {
+export function createSectionReader({ onSelect, onClose, standalone = false, mount = document.body }) {
   const element = node('section', 'portal-focus');
   element.setAttribute('aria-label', '帐篷内容');
   const back = iconButton('arrow-left', '返回帐篷', 'focus-back');
@@ -36,14 +36,14 @@ export function createSectionReader({ onSelect, onClose, standalone = false }) {
   const heading = node('header', 'chapter-heading');
   const titles = node('div', 'chapter-titles');
   const title = node('h1');
-  title.id = 'chapter-title';
+  title.id = standalone ? 'image-page-title' : 'chapter-title';
   const name = node('p', 'chief-name');
   const description = node('p', 'section-description');
   titles.append(title, name, description);
   const scroll = node('div', 'chapter-body');
-  scroll.id = 'chapter-body';
+  scroll.id = standalone ? 'image-page-body' : 'chapter-body';
   scroll.tabIndex = 0;
-  scroll.setAttribute('aria-labelledby', 'chapter-title');
+  scroll.setAttribute('aria-labelledby', title.id);
   const body = node('div', 'chapter-content');
   scroll.append(body);
   const navigation = node('nav', 'section-links');
@@ -57,7 +57,7 @@ export function createSectionReader({ onSelect, onClose, standalone = false }) {
   heading.append(navigation, titles);
   copy.append(heading, scroll);
   element.append(back, copy);
-  document.body.append(element);
+  mount.append(element);
 
   const dialog = node('dialog', 'image-viewer');
   dialog.setAttribute('aria-label', '图片查看');
@@ -126,7 +126,7 @@ export function createSectionReader({ onSelect, onClose, standalone = false }) {
     const link = event.target.closest('a[data-section-index]');
     if (!link || event.defaultPrevented || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
     const index = Number(link.dataset.sectionIndex);
-    if (standalone || sections[index]?.page) return;
+    if (!onSelect) return;
     event.preventDefault();
     onSelect(index);
   });

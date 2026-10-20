@@ -90,6 +90,8 @@
 .image-viewer.zoomed .image-stage { display: block; }
 .image-viewer.zoomed img { max-width: none; max-height: none; margin: 0 auto; }
 body.portal-focused .topbar, body.portal-focused .tip { opacity: 0; }
+.focus-swipe-hint { display: none; position: fixed; bottom: calc(14px + env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%); z-index: 8; width: max-content; max-width: 90%; color: #f4e7d4a6; font: 12px/1.6 var(--opening-font); pointer-events: none; text-shadow: 0 1px 4px #000; }
+body.portal-focused .focus-swipe-hint { display: block; }
 @media (max-width: 700px) {
   .focus-copy h1 { font-size: 23px; margin-top: 5px; }
   .chief-name { font-size: 29px; margin-top: 0; }

@@ -3,7 +3,7 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 import { buildBlackHole, buildEffects } from './effects_first.js?v=50';
-import { createSectionReader, sections, sectionHref } from './sections.js?v=58';
+import { createSectionReader, sections } from './sections.js?v=59';
 
 const host = document.getElementById('stage');
 const loadingEl = document.getElementById('loading');
@@ -339,6 +339,65 @@ let focusTransition = null;
 const overviewPixelRatio = Math.min(window.devicePixelRatio || 1, isMobile ? 1.5 : 2);
 const reader = createSectionReader({ onSelect: selectSection, onClose: closePanel });
 const focusLayer = reader.element;
+const photoLayer = document.createElement('dialog');
+photoLayer.className = 'image-page-overlay section-page';
+photoLayer.setAttribute('aria-labelledby', 'image-page-title');
+document.body.append(photoLayer);
+const photoReader = createSectionReader({ standalone: true, mount: photoLayer,
+  onSelect: selectSection, onClose: () => closePhotoPage() });
+photoReader.element.classList.add('active', 'ready');
+let photoIndex = null;
+let photoReturnUrl = null;
+let photoReturnFocus = null;
+let photoNextSection = null;
+photoLayer.addEventListener('cancel', event => { event.preventDefault(); closePhotoPage(); });
+
+function openPhotoPage(index, fromHistory = false) {
+  if (photoLayer.open && photoIndex === index) return;
+  if (!photoLayer.open) {
+    photoReturnFocus = document.activeElement;
+    const url = new URL(location.href);
+    if (sections.some(section => section.page && '#' + section.id === url.hash)) {
+      url.hash = focusState ? sections[focusState.portal.userData.portal].id : '';
+    }
+    photoReturnUrl = fromHistory && history.state?.photoReturnUrl ? history.state.photoReturnUrl : url.href;
+    if (!fromHistory) history.replaceState(history.state, '', photoReturnUrl);
+  }
+  if (!fromHistory) {
+    const url = new URL(location.href);
+    url.hash = sections[index].id;
+    const state = { photoPage: true, photoReturnUrl };
+    if (photoLayer.open) history.replaceState(state, '', url);
+    else history.pushState(state, '', url);
+  }
+  pendingSection = null;
+  photoIndex = index;
+  photoReader.show(index);
+  document.body.classList.add('photo-page-open');
+  if (!photoLayer.open) photoLayer.showModal();
+  photoLayer.scrollTop = 0;
+  photoReader.focusBack();
+}
+
+function dismissPhotoPage() {
+  if (photoReader.isImageOpen()) photoReader.closeImage();
+  photoLayer.close();
+  photoIndex = null;
+  document.body.classList.remove('photo-page-open');
+  photoReturnFocus?.focus({ preventScroll: true });
+}
+
+function closePhotoPage(nextIndex = null) {
+  if (photoReader.isImageOpen()) { photoReader.closeImage(); return; }
+  if (!photoLayer.open) return;
+  photoNextSection = nextIndex;
+  if (history.state?.photoPage) history.back();
+  else {
+    dismissPhotoPage();
+    history.replaceState(null, '', photoReturnUrl);
+    if (nextIndex !== null) selectSection(nextIndex);
+  }
+}
 let downX = 0, downY = 0, dragged = false;
 
 const readerPoint = new THREE.Vector3();
@@ -375,7 +434,8 @@ function setSectionHash(index) {
 
 function selectSection(index) {
   if (!Number.isInteger(index) || !sections[index] || focusTransition) return;
-  if (sections[index].page) { location.assign(sectionHref(index)); return; }
+  if (sections[index].page) { openPhotoPage(index); return; }
+  if (photoLayer.open) { closePhotoPage(index); return; }
   if (!modelRoot || !portals.length) { pendingSection = index; return; }
   if (focusState) {
     if (reader.isImageOpen()) reader.closeImage();
@@ -395,11 +455,23 @@ function selectSection(index) {
   pendingSection = index;
 }
 
-window.addEventListener('hashchange', () => {
+function syncLocation() {
   const index = sections.findIndex(section => '#' + section.id === location.hash);
-  if (index >= 0) selectSection(index);
+  if (sections[index]?.page) { openPhotoPage(index, true); return; }
+  if (photoLayer.open) {
+    dismissPhotoPage();
+    if (photoNextSection !== null) {
+      const next = photoNextSection;
+      photoNextSection = null;
+      selectSection(next);
+      return;
+    }
+  }
+  if (index >= 0 && focusState?.portal.userData.portal !== index) selectSection(index);
   else if (!location.hash) closePanel();
-});
+}
+window.addEventListener('hashchange', syncLocation);
+window.addEventListener('popstate', syncLocation);
 
 renderer.domElement.addEventListener('pointerdown', (e) => { downX = e.clientX; downY = e.clientY; dragged = false; });
 renderer.domElement.addEventListener('pointermove', (e) => { if (Math.hypot(e.clientX - downX, e.clientY - downY) > 8) dragged = true; });
@@ -419,7 +491,7 @@ function pickPortal(e) {
 function openPanel(portal) {
   if (focusState) return;
   if (sections[portal.userData.portal].page) {
-    location.assign(sectionHref(portal.userData.portal));
+    openPhotoPage(portal.userData.portal);
     return;
   }
   pendingSection = null;
@@ -527,6 +599,10 @@ function updateFocus() {
 }
 
 window.addEventListener('keydown', (e) => {
+  if (photoLayer.open) {
+    if (e.key === 'Escape') { e.preventDefault(); closePhotoPage(); }
+    return;
+  }
   if (e.key === 'Escape' && reader.isImageOpen()) { e.preventDefault(); reader.closeImage(); return; }
   if (e.key === 'Escape' && focusState) closePanel();
 });
@@ -534,7 +610,7 @@ window.addEventListener('keydown', (e) => {
 let exitGesture = null;
 document.addEventListener('pointerdown', event => {
   exitGesture = null;
-  if (!focusState || !focusLayer.classList.contains('ready') || reader.isImageOpen() ||
+  if (photoLayer.open || !focusState || !focusLayer.classList.contains('ready') || reader.isImageOpen() ||
       !event.isPrimary || event.button !== 0 || event.target.closest('a, button, summary, dialog')) return;
   exitGesture = { id: event.pointerId, x: event.clientX, y: event.clientY, vertical: false };
 }, true);
@@ -577,6 +653,8 @@ resize();
 renderer.setAnimationLoop(() => {
   const dt = clock.getDelta();
   if (!paused) animTime += dt;
+  // The opaque photo page hides the scene; retain it without rendering behind the dialog.
+  if (photoLayer.open) return;
   const t = animTime;
   flagUniform.value = t;
   if (fx) fx.update(t);

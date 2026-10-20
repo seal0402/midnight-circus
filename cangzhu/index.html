@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<base href="../">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>午夜马戏 · 帐篷 3D</title>
+<link rel="stylesheet" href="./focus.css?v=59">
+<link rel="stylesheet" href="./opening-fonts.css?v=59">
+<link rel="stylesheet" href="./opening.css?v=54">
+<link rel="stylesheet" href="./section-page.css?v=59">
+<style>
+  :root{ color-scheme: dark; }
+  html,body{ width:100%; height:100%; height:100dvh; margin:0; background:#0b0910; overflow:hidden;
+    font-family: "Microsoft YaHei", system-ui, -apple-system, sans-serif; }
+  .ambient-art{ position:fixed; inset:-3%; z-index:0; pointer-events:none;
+    background:url('./media/ambient_ring.webp') center / 100% 100% no-repeat;
+    opacity:.92; filter:brightness(1.16) saturate(1.12);
+    animation:ambient-breathe 3.8s ease-in-out infinite alternate; }
+  .ambient-art::after{ content:""; position:absolute; inset:0;
+    background:url('./media/ambient_ring.webp') center / 100% 100% no-repeat;
+    filter:brightness(2.3) saturate(1.35);
+    -webkit-mask-image:radial-gradient(ellipse 12% 16% at 17% 70%, #000, transparent),
+      radial-gradient(ellipse 13% 18% at 83% 36%, #000, transparent),
+      radial-gradient(ellipse 10% 14% at 78% 78%, #000, transparent);
+    mask-image:radial-gradient(ellipse 12% 16% at 17% 70%, #000, transparent),
+      radial-gradient(ellipse 13% 18% at 83% 36%, #000, transparent),
+      radial-gradient(ellipse 10% 14% at 78% 78%, #000, transparent);
+    animation:ambient-glints 3.2s ease-in-out infinite; }
+  @keyframes ambient-breathe{ from{transform:scale(1) rotate(-.5deg);opacity:.62;filter:brightness(.82) saturate(1.04)}
+    to{transform:scale(1.045) rotate(.5deg);opacity:1;filter:brightness(1.55) saturate(1.25)} }
+  @keyframes ambient-glints{ 0%,100%{opacity:.04} 18%{opacity:.90} 38%{opacity:.10} 67%{opacity:1} 85%{opacity:.08} }
+  #stage{ position:fixed; inset:0; z-index:1; overflow:hidden; }
+  #stage canvas{ display:block; width:100% !important; height:100% !important; touch-action:none; }
+  .vignette{ position:fixed; inset:0; pointer-events:none; z-index:2;
+    background: radial-gradient(ellipse at 50% 42%, rgba(255,196,128,.10), transparent 45%),
+                radial-gradient(ellipse at 50% 50%, transparent 55%, rgba(0,0,0,.72) 100%); }
+  .topbar{ position:fixed; top:0; left:0; right:0; z-index:5; display:flex; justify-content:space-between;
+    padding:18px 22px; pointer-events:none; color:#f4e7d4; font-size:13px; letter-spacing:.14em; }
+  .topbar .name{ opacity:.85; }
+  .topbar .hint{ opacity:.5; }
+  .loading{ position:fixed; inset:0; z-index:10; display:flex; flex-direction:column; align-items:center;
+    justify-content:center; gap:14px; background:#0b0910; color:#e9dcc8;
+    transition:opacity .5s ease; font-size:13px; letter-spacing:.2em; }
+  .loading.done{ opacity:0; pointer-events:none; }
+  .bar{ width:190px; height:2px; background:#2a2230; overflow:hidden; border-radius:2px; }
+  .bar i{ display:block; height:100%; width:0%; background:linear-gradient(90deg,#e8b06a,#f6e2c4);
+    transition:width .2s ease; }
+  .err{ position:fixed; inset:0; z-index:11; display:none; align-items:center; justify-content:center;
+    background:#0b0910; color:#f0c9a0; font-size:14px; text-align:center; padding:30px; }
+  .tip{ position:fixed; left:50%; bottom:26px; transform:translateX(-50%); z-index:5;
+    color:#d9c9b4; font-size:12px; letter-spacing:.24em; opacity:.55; pointer-events:none;
+    transition:opacity .6s ease; }
+  .tip.hide{ opacity:0; }
+  .panel-layer{ position:fixed; inset:0; z-index:6; pointer-events:none; }
+  .panel-layer svg{ position:absolute; inset:0; width:100%; height:100%; }
+  .panel-layer .card{ position:absolute; pointer-events:auto; width:210px; padding:12px 14px;
+    background:rgba(16,11,18,.92); border:1px solid rgba(232,176,106,.55); border-radius:8px;
+    color:#f2e3cf; box-shadow:0 8px 30px rgba(0,0,0,.55); backdrop-filter:blur(6px);
+    opacity:0; transform:translateY(6px); transition:opacity .35s ease, transform .35s ease; }
+  .panel-layer .card.on{ opacity:1; transform:translateY(0); }
+  .panel-layer .card h4{ margin:0 0 6px; font-size:13px; letter-spacing:.08em; color:#e8b06a; }
+  .panel-layer .card p{ margin:0; font-size:12px; line-height:1.6; color:#c8bba8; }
+  .panel-layer .card .x{ position:absolute; top:6px; right:8px; cursor:pointer; opacity:.5; font-size:12px; }
+  .panel-layer .card .x:hover{ opacity:1; }
+
+  @media (max-width:700px) {
+    .ambient-art{ inset:-2%; background-size:cover; }
+    .ambient-art::after{ background-size:cover; }
+    .vignette{ background:radial-gradient(ellipse at 50% 48%, transparent 40%, rgba(0,0,0,.68) 100%); }
+    .topbar{ padding:calc(12px + env(safe-area-inset-top)) calc(14px + env(safe-area-inset-right)) 0 calc(14px + env(safe-area-inset-left)); font-size:11px; }
+    .topbar .hint{ letter-spacing:.08em; }
+    .tip{ bottom:calc(16px + env(safe-area-inset-bottom)); width:max-content; max-width:90vw; text-align:center; font-size:11px; letter-spacing:.12em; }
+    .panel-layer svg{ display:none; }
+    .panel-layer #cards{ position:absolute; left:calc(12px + env(safe-area-inset-left)); right:calc(12px + env(safe-area-inset-right)); bottom:calc(12px + env(safe-area-inset-bottom));
+      max-height:min(46dvh, 360px); overflow:auto; display:flex; flex-direction:column; gap:8px; scrollbar-width:thin; }
+    .panel-layer .card{ position:relative; left:auto !important; top:auto !important; box-sizing:border-box; width:100%; padding:12px 36px 12px 14px;
+      background:rgba(13,9,18,.96); border-radius:12px; flex:none; }
+    .panel-layer .card h4{ font-size:13px; }
+    .panel-layer .card p{ font-size:11px; line-height:1.45; }
+    .panel-layer .card .x{ top:10px; right:12px; font-size:17px; opacity:.85; }
+  }
+  @media (prefers-reduced-motion:reduce) {
+    .ambient-art{ animation:none; }
+    .ambient-art::after{ animation:none; opacity:.2; }
+    .panel-layer .card{ transition:none; }
+  }
+
+</style>
+<script type="importmap">
+{ "imports": { "three": "./vendor/three.module.js", "three/addons/": "./vendor/addons/" } }
+</script>
+</head>
+<body>
+  <div class="ambient-art" aria-hidden="true"></div>
+  <div id="stage"></div>
+  <div class="vignette"></div>
+  <main class="opening" aria-label="开场独白">
+    <nav class="chapter-menu section-links" aria-label="六个板块">
+      <a href="#chief" data-section-index="0">首席</a>
+      <a href="#program" data-section-index="1">今日剧目</a>
+      <a href="#rules" data-section-index="2">戒律</a>
+      <a href="./whispers.html?v=59" data-section-index="3">呓语</a>
+      <a href="./reviews.html?v=59" data-section-index="4">分贝空间</a>
+      <a href="./cards.html?v=59" data-section-index="5">彩头</a>
+    </nav>
+    <div class="opening-inner">
+      <p class="opening-greeting">哎呀，这位观众，<br class="opening-mobile-break">你的表情怎么如此僵硬？</p>
+      <p class="opening-question">是生活这场戏太无聊，<br class="opening-mobile-break">还是你还没学会怎么取悦我？</p>
+      <div class="opening-invitation">
+        <p>围观群众已就位，还请这位贵客检票入场。<br>请将理智寄存在门口。</p>
+        <p>下单吧，客人。<br class="opening-mobile-break">欢愉是基酒，爱意是装饰，<br>至于结局……敬请期待。</p>
+      </div>
+      <p class="opening-curtain">闹剧主角登场，演出开始！</p>
+      <p class="opening-aside">“乖孩子，听话的人才有糖吃……<br class="opening-mobile-break">虽然我的糖里可能有点砒霜。”</p>
+    </div>
+  </main>
+  <div class="topbar"><span class="name">午夜马戏 · 帐篷</span><span class="hint">左右滑动</span></div>
+  <div class="focus-swipe-hint">左右滑动退出</div>
+  <div class="loading" id="loading">
+    <span>正在装载帐篷模型</span>
+    <div class="bar"><i id="bar"></i></div>
+    <span id="pct">0%</span>
+  </div>
+  <div class="err" id="err">模型加载失败。<br>请确认通过本地服务器打开本页，而不是双击 index.html。</div>
+  <div class="tip" id="tip">拖动旋转 · 松手继续自转 · 点洞口</div>
+  <div class="panel-layer" id="panelLayer"><svg id="lines"></svg><div id="cards"></div></div>
+  <script src="./vendor/lucide.min.js?v=54"></script>
+  <script type="module" src="./viewer.js?v=59"></script>
+</body>
+</html>
