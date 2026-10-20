@@ -1,9 +1,9 @@
-import { createSectionReader, sections } from './sections.js?v=57';
+import { createSectionReader, sections } from './sections.js?v=58';
 
 const index = sections.findIndex(section => section.id === document.body.dataset.section);
 const reader = createSectionReader({
   standalone: true,
-  onClose: () => location.assign('./?v=57'),
+  onClose: () => location.assign('./?v=58'),
 });
 reader.show(index);
 reader.element.classList.add('active', 'ready');

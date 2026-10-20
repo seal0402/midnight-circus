@@ -3,7 +3,7 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 import { buildBlackHole, buildEffects } from './effects_first.js?v=50';
-import { createSectionReader, sections, sectionHref } from './sections.js?v=57';
+import { createSectionReader, sections, sectionHref } from './sections.js?v=58';
 
 const host = document.getElementById('stage');
 const loadingEl = document.getElementById('loading');

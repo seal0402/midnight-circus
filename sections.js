@@ -1,10 +1,10 @@
-import sections from './sections-data.js?v=57';
+import sections from './sections-data.js?v=58';
 
 export { sections };
 
 export function sectionHref(index) {
   const section = sections[index];
-  return section.page ? './' + section.page + '?v=57' : './?v=57#' + section.id;
+  return section.page ? './' + section.page + '?v=58' : './?v=58#' + section.id;
 }
 
 function node(tag, className, text) {

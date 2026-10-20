@@ -2,7 +2,7 @@ export default [
   {
     "id": "chief",
     "title": "首席",
-    "name": "仓竹",
+    "name": "苍竹",
     "subtitle": "关于我",
     "tags": [
       "intj",
